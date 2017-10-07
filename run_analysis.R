@@ -38,32 +38,12 @@ load_data_file <- function(filename, col_file="UCI HAR Dataset/features.txt") {
     # Notice the tolower function
     good_col <- sapply(col_names, function(x) {grepl("mean", tolower(x)) || grepl("std", tolower(x)) })
     good_col <- which(good_col)
-    col_names <- col_names[good_col]
-    
-    # Read data from file. Unfortunately the separator is two-character long and hence
-    # one cannot use the read.table function directly.
-    data <- readLines(con <- file(filename))
-    close(con)
-    
-    # 1. Remove trailing spaces 2. Replace one or more spaces with ";"
-    # 3. Split on ";" 4. Select only first component of the returned list
-    x <- strsplit(gsub(" +", ";" ,trimws(data[1])),";")[[1]]
-    
-    # First row. Select good components, cast to float and transpose. Then create dataframe
-    x <- t(as.numeric(x[good_col]))
-    df <- data.frame(x, stringsAsFactors = FALSE)
-    colnames(df) <- col_names
-    
-    # Iterate over rows
-    for(row in data[2:length(data)]) {
-        x <- strsplit(gsub(" +", ";" ,trimws(row)),";")[[1]]
-        x <- t(as.numeric(x[good_col]))
-        df2 <- data.frame(x, stringsAsFactors = FALSE)
-        colnames(df2) <- col_names
-        df <- rbind(df,df2)
-    }
-    
-    return(df)
+
+    # Read data from file and filter "good" columns
+    data <- read.table(filename, col.names = col_names)
+    data <- data[,good_col]
+    return(data)
+
 }
 
 map_activity <- function(x) {
